@@ -157,7 +157,7 @@ const COLORS = ["#6851ff", "#ff7f50", "#00c49f", "#ffbb28"];
               </div>
         
               {/* Donut Chart */}
-              <div className={`rounded-2xl p-6 shadow-lg ${mode === "light"? "text-black bg-white/80 " : "text-white bg-[#292930]"}`}>
+              {/* <div className={`rounded-2xl p-6 shadow-lg ${mode === "light"? "text-black bg-white/80 " : "text-white bg-[#292930]"}`}>
                 <h3 className="text-lg font-semibold mb-4">Jobs Overview</h3>
                 <ResponsiveContainer width="100%" height={250}>
                   <PieChart>
@@ -178,7 +178,7 @@ const COLORS = ["#6851ff", "#ff7f50", "#00c49f", "#ffbb28"];
                     <Legend />
                   </PieChart>
                 </ResponsiveContainer>
-              </div>
+              </div> */}
             </div>
       </div>
 

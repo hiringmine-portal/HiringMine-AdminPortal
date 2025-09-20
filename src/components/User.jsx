@@ -109,9 +109,9 @@ const UserDetail = ({ mode }) => {
 </div>
 
       {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      {/* <div className="grid grid-cols-1 lg:grid-cols-2 gap-8"> */}
         {/* Line Chart */}
-        <div className={`p-6 rounded-xl ${mode === "light" ? "bg-white shadow-md" : "bg-[#292930] border border-white/10"}`}>
+        {/* <div className={`p-6 rounded-xl ${mode === "light" ? "bg-white shadow-md" : "bg-[#292930] border border-white/10"}`}>
           <h3 className="font-bold mb-4">User Registration Over Time</h3>
           <ResponsiveContainer width="100%" height={250}>
             <LineChart data={monthlyUsers}>
@@ -121,10 +121,10 @@ const UserDetail = ({ mode }) => {
               <Line type="monotone" dataKey="applied" stroke="#6851ff" strokeWidth={3} />
             </LineChart>
           </ResponsiveContainer>
-        </div>
+        </div> */}
 
         {/* Donut Chart */}
-        <div className={`p-6 rounded-xl ${mode === "light" ? "bg-white shadow-md" : "bg-[#292930] border border-white/10"}`}>
+        {/* <div className={`p-6 rounded-xl ${mode === "light" ? "bg-white shadow-md" : "bg-[#292930] border border-white/10"}`}>
           <h3 className="font-bold mb-4">User Status</h3>
           <ResponsiveContainer width="100%" height={250}>
             <PieChart>
@@ -136,8 +136,8 @@ const UserDetail = ({ mode }) => {
               <Tooltip />
             </PieChart>
           </ResponsiveContainer>
-        </div>
-      </div>
+        </div> */}
+      {/* </div> */}
 
       
       {/* Applications Table */}
