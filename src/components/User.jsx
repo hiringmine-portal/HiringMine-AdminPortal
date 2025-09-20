@@ -1,5 +1,6 @@
 import React from "react";
 import { PieChart, Pie, Cell, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import UserTable from "./UserTable";
 
 const UserDetail = ({ mode }) => {
   // dummy user
@@ -140,7 +141,7 @@ const UserDetail = ({ mode }) => {
 
       
       {/* Applications Table */}
-      <div className={`p-6 rounded-xl overflow-x-auto ${mode === "light" ? "bg-white shadow-md" : "bg-[#292930] border border-white/10"}`}>
+      {/* <div className={`p-6 rounded-xl overflow-x-auto ${mode === "light" ? "bg-white shadow-md" : "bg-[#292930] border border-white/10"}`}>
         <h3 className="font-bold mb-4">Recent Account Registrations</h3>
         <table className="w-full text-sm text-left border-collapse">
           <thead>
@@ -162,9 +163,20 @@ const UserDetail = ({ mode }) => {
             ))}
           </tbody>
         </table>
-      </div>
+      </div> */}
+
+
+      <UserTable mode={mode}/>
     </div>
   );
 };
 
 export default UserDetail;
+
+
+
+
+
+
+
+

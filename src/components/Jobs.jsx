@@ -1,6 +1,7 @@
 import React from "react";
 import DashboardCharts from "./DashboardCharts";
 import { Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import JobTable from "./JobTable";
 
 const Jobs = ({ mode }) => {
   const monthsArr = [
@@ -26,9 +27,9 @@ const Jobs = ({ mode }) => {
   const year = currentDate.getFullYear();
 
   const userWidgets = [
-    { name: "Total Jobs", numbers: 12, icon: "✅" },
+    { name: "Total Jobs", numbers: 12, icon: "💼" },
     { name: "This Year Jobs", numbers: 5, icon: "✅" },
-    { name: "This Month Jobs", numbers: 2, icon: "✅" },
+    { name: "This Month Jobs", numbers: 2, icon: "💼" },
     { name: "This Week", numbers: 7, icon: "✅" },
   ];
 
@@ -196,6 +197,10 @@ const COLORS = ["#6851ff", "#ff7f50", "#00c49f", "#ffbb28"];
           ))}
         </ul>
       </div> */}
+
+   <div className="mt-10">
+       <JobTable mode={mode}/>
+   </div>
     </div>
   );
 };
