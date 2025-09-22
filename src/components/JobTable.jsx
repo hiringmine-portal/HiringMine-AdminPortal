@@ -1,17 +1,28 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
+import {
+  TextField,
+  MenuItem,
+  IconButton,
+  Modal,
+  Box,
+  Button,
+  Select,
+  FormControl,
+  InputLabel,
+} from "@mui/material";
+import FilterListIcon from "@mui/icons-material/FilterList";
+import { useNavigate } from "react-router-dom";
 
 const JobTable = ({ mode }) => {
   // Dummy Jobs Data
-  const allJobs = Array.from({ length: 42 }, (_, i) => ({
+  const navigate = useNavigate()
+  const allJobs = Array.from({ length: 105 }, (_, i) => ({
     id: i + 1,
     designation: `Job Title ${i + 1}`,
     company: `Company ${i + 1}`,
     category: i % 2 === 0 ? "IT" : "Finance",
     position: i % 3 === 0 ? "Manager" : "Developer",
     jobType: i % 2 === 0 ? "Full-Time" : "Part-Time",
-    active: i % 2 === 0,
-    approve: i % 3 === 0,
-    hidden: i % 4 === 0,
     status:
       i % 7 === 0
         ? "Deleted"
@@ -29,7 +40,18 @@ const JobTable = ({ mode }) => {
   // Tabs State
   const [activeTab, setActiveTab] = useState("All Jobs");
   const [currentPage, setCurrentPage] = useState(1);
-  const jobsPerPage = 8;
+  const [jobsPerPage, setJobsPerPage] = useState(10);
+
+  // Filter State
+  const [filters, setFilters] = useState({
+    search: "",
+    category: "",
+    position: "",
+    jobType: "",
+  });
+
+  // Modal State
+  const [openFilter, setOpenFilter] = useState(false);
 
   const tabs = [
     "All Jobs",
@@ -41,11 +63,28 @@ const JobTable = ({ mode }) => {
     "Deleted Jobs",
   ];
 
-  // Filter Jobs According to Tab
-  const filteredJobs =
-    activeTab === "All Jobs"
-      ? allJobs
-      : allJobs.filter((job) => job.status === activeTab.replace(" Jobs", ""));
+  // Filtered Jobs
+  const filteredJobs = useMemo(() => {
+    let jobs =
+      activeTab === "All Jobs"
+        ? allJobs
+        : allJobs.filter(
+            (job) => job.status === activeTab.replace(" Jobs", "")
+          );
+
+    return jobs.filter((job) => {
+      return (
+        (filters.search === "" ||
+          job.designation
+            .toLowerCase()
+            .includes(filters.search.toLowerCase()) ||
+          job.company.toLowerCase().includes(filters.search.toLowerCase())) &&
+        (filters.category === "" || job.category === filters.category) &&
+        (filters.position === "" || job.position === filters.position) &&
+        (filters.jobType === "" || job.jobType === filters.jobType)
+      );
+    });
+  }, [allJobs, activeTab, filters]);
 
   // Pagination
   const totalPages = Math.ceil(filteredJobs.length / jobsPerPage);
@@ -57,42 +96,61 @@ const JobTable = ({ mode }) => {
     if (page >= 1 && page <= totalPages) setCurrentPage(page);
   };
 
-  const changeTab = (tab) => {
-    setActiveTab(tab);
-    setCurrentPage(1);
+  const getPaginationNumbers = () => {
+    const pages = [];
+    if (totalPages <= 5) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      if (currentPage <= 3) {
+        pages.push(1, 2, 3, "...", totalPages);
+      } else if (currentPage >= totalPages - 2) {
+        pages.push(1, "...", totalPages - 2, totalPages - 1, totalPages);
+      } else {
+        pages.push(1, "...", currentPage, "...", totalPages);
+      }
+    }
+    return pages;
   };
 
-  const [selectedJob, setSelectedJob] = useState(null);
-
-  const openModal = (job) => setSelectedJob(job);
-  const closeModal = () => setSelectedJob(null);
-
-  const approveJob = () => {
-    alert(`Job ${selectedJob.id} Approved ✅`);
-    closeModal();
+  const handleFilterChange = (e) => {
+    setFilters({ ...filters, [e.target.name]: e.target.value });
   };
 
-  const deleteJob = () => {
-    alert(`Job ${selectedJob.id} Deleted ❌`);
-    closeModal();
+  const handleResetFilters = () => {
+    setFilters({
+      search: "",
+      category: "",
+      position: "",
+      jobType: "",
+    });
   };
 
   return (
     <div
-      className={` p-6 rounded-xl ${
+      className={`p-6 rounded-xl ${
         mode === "light"
           ? "bg-white shadow-md text-black"
           : "bg-[#292930] text-white"
       }`}
     >
-      <h2 className="text-xl font-bold mb-4">Jobs Management</h2>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-xl font-bold">Jobs Management</h2>
+
+        {/* Filter Button */}
+        <IconButton onClick={() => setOpenFilter(true)}>
+          <FilterListIcon />
+        </IconButton>
+      </div>
 
       {/* Tabs */}
       <div className="flex flex-wrap gap-3 mb-6">
         {tabs.map((tab) => (
           <button
             key={tab}
-            onClick={() => changeTab(tab)}
+            onClick={() => {
+              setActiveTab(tab);
+              setCurrentPage(1);
+            }}
             className={`px-4 py-2 rounded-lg font-medium transition ${
               activeTab === tab
                 ? "bg-indigo-600 text-white"
@@ -107,7 +165,7 @@ const JobTable = ({ mode }) => {
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
         <table className="w-full border-collapse text-sm">
           <thead>
             <tr
@@ -121,73 +179,84 @@ const JobTable = ({ mode }) => {
               <th className="p-3">Category</th>
               <th className="p-3">Position</th>
               <th className="p-3">Job Type</th>
-              <th className="p-3">Active</th>
-              <th className="p-3">Approved</th>
-              <th className="p-3">Hidden</th>
-              <th className="p-3">Action</th>
+              <th className="p-3">Status</th>
             </tr>
           </thead>
+
           <tbody>
-            {currentJobs.map((job) => (
-              <tr
-                key={job.id}
-                className={`border-b ${
-                  mode === "light" ? "hover:bg-gray-50" : "hover:bg-gray-800"
-                }`}
-              >
-                <td className="p-3">{job.id}</td>
-                <td className="p-3">{job.designation}</td>
-                <td className="p-3">{job.company}</td>
-                <td className="p-3">{job.category}</td>
-                <td className="p-3">{job.position}</td>
-                <td className="p-3">{job.jobType}</td>
-                <td className="p-3">
-                  <span
-                    className={`px-2 py-1 rounded-full text-xs ${
-                      job.active
-                        ? "bg-green-100 text-green-700"
-                        : "bg-red-100 text-red-700"
-                    }`}
-                  >
-                    {job.active ? "Yes" : "No"}
-                  </span>
-                </td>
-                <td className="p-3">
-                  <span
-                    className={`px-2 py-1 rounded-full text-xs ${
-                      job.approve
-                        ? "bg-blue-100 text-blue-700"
-                        : "bg-gray-200 text-gray-700"
-                    }`}
-                  >
-                    {job.approve ? "Yes" : "No"}
-                  </span>
-                </td>
-                <td className="p-3">
-                  <span
-                    className={`px-2 py-1 rounded-full text-xs ${
-                      job.hidden
-                        ? "bg-yellow-100 text-yellow-700"
-                        : "bg-gray-200 text-gray-700"
-                    }`}
-                  >
-                    {job.hidden ? "Yes" : "No"}
-                  </span>
-                </td>
-                <td className="p-3">
-                  <button
-                    onClick={() => openModal(job)}
-                    className="px-3 py-1 bg-indigo-500 text-white rounded-md hover:bg-indigo-600 transition"
-                  >
-                    View
-                  </button>
-                </td>
-              </tr>
-            ))}
+              {currentJobs.map((job) => (
+                <tr
+  key={job.id}
+  onClick={() => navigate(`/jobdetail/${job.id}`)}
+  className={`cursor-pointer border-b ${
+    mode === "light" ? "hover:bg-gray-50" : "hover:bg-gray-800"
+  }`}
+>
+  <td className="p-3">{job.id}</td>
+  <td className="p-3">{job.designation}</td>
+  <td className="p-3">{job.company}</td>
+  <td className="p-3">{job.category}</td>
+  <td className="p-3">{job.position}</td>
+  <td className="p-3">{job.jobType}</td>
+  <td className="p-3">
+    <span
+      className={`px-2 py-1 rounded-full text-xs ${
+        job.status === "Active"
+          ? "bg-green-100 text-green-700"
+          : job.status === "Approved"
+          ? "bg-blue-100 text-blue-700"
+          : job.status === "Pending"
+          ? "bg-yellow-100 text-yellow-700"
+          : job.status === "Reported"
+          ? "bg-red-100 text-red-700"
+          : "bg-gray-200 text-gray-700"
+      }`}
+    >
+      {job.status}
+    </span>
+  </td>
+</tr>
+
+            
+              // <tr
+              //   // onClick={() => navigate(`/jobs/${job.id}`)}
+              //     key={job.id}
+              //     className={`border-b ${
+              //       mode === "light" ? "hover:bg-gray-50" : "hover:bg-gray-800"
+              //     }`}
+              //   >
+              //     <td className="p-3">{job.id}</td>
+              //     <td className="p-3">{job.designation}</td>
+              //     <td className="p-3">{job.company}</td>
+              //     <td className="p-3">{job.category}</td>
+              //     <td className="p-3">{job.position}</td>
+              //     <td className="p-3">{job.jobType}</td>
+              //     <td className="p-3">
+              //       <span
+              //         className={`px-2 py-1 rounded-full text-xs ${
+              //           job.status === "Active"
+              //             ? "bg-green-100 text-green-700"
+              //             : job.status === "Approved"
+              //             ? "bg-blue-100 text-blue-700"
+              //             : job.status === "Pending"
+              //             ? "bg-yellow-100 text-yellow-700"
+              //             : job.status === "Reported"
+              //             ? "bg-red-100 text-red-700"
+              //             : "bg-gray-200 text-gray-700"
+              //         }`}
+              //       >
+              //         {job.status}
+              //       </span>
+              //     </td>
+              //   </tr>
+            
+                
+              ))}
             {currentJobs.length === 0 && (
               <tr>
-                <td colSpan="10" className="p-4 text-center opacity-70">
-                  No {activeTab.toLowerCase()} found.
+                <td colSpan="7" className="p-4 text-center opacity-70">
+                  No {activeTab.replace("Jobs", "").toLowerCase()} jobs match
+                  your filters.
                 </td>
               </tr>
             )}
@@ -195,173 +264,160 @@ const JobTable = ({ mode }) => {
         </table>
       </div>
 
-      {/* Pagination */}
-      <div className="flex justify-between items-center mt-4">
-        <button
-          onClick={() => handlePageChange(currentPage - 1)}
-          disabled={currentPage === 1}
-          className={`px-3 py-1 rounded-md ${
-            currentPage === 1
-              ? "bg-gray-300 cursor-not-allowed"
-              : "bg-indigo-500 text-white hover:bg-indigo-600"
-          }`}
-        >
-          Previous
-        </button>
+      {/* Pagination + Rows Per Page */}
+      <div className="flex justify-between items-center mt-6">
+        {/* Pagination */}
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+            className={`px-3 py-1 rounded-md ${
+              currentPage === 1
+                ? "bg-gray-300 cursor-not-allowed"
+                : "bg-indigo-500 text-white hover:bg-indigo-600"
+            }`}
+          >
+            Prev
+          </button>
 
-        <div className="flex space-x-2">
-          {Array.from({ length: totalPages }, (_, i) => (
-            <button
-              key={i}
-              onClick={() => handlePageChange(i + 1)}
-              className={`px-3 py-1 rounded-md ${
-                currentPage === i + 1
-                  ? "bg-indigo-600 text-white"
-                  : "bg-gray-200 hover:bg-gray-300"
-              }`}
-            >
-              {i + 1}
-            </button>
-          ))}
-
-          {/* Modal */}
-          {selectedJob && (
-            <div className="fixed inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm z-50">
-              <div
-                className={`w-full max-w-3xl rounded-2xl shadow-2xl transform transition-all duration-300 scale-100 ${
-                  mode === "light"
-                    ? "bg-white text-black"
-                    : "bg-[#1e1e24] text-white"
+          {getPaginationNumbers().map((num, i) =>
+            num === "..." ? (
+              <span key={i} className="px-2">
+                ...
+              </span>
+            ) : (
+              <button
+                key={i}
+                onClick={() => handlePageChange(num)}
+                className={`px-3 py-1 rounded-md ${
+                  currentPage === num
+                    ? "bg-indigo-600 text-white"
+                    : "bg-gray-200 hover:bg-gray-300"
                 }`}
               >
-                {/* Header */}
-                <div
-                  className={`flex items-center justify-between px-6 py-4 rounded-t-2xl ${
-                    mode === "light"
-                      ? "bg-gradient-to-r from-indigo-500 to-purple-500 text-white"
-                      : "bg-gradient-to-r from-indigo-600 to-purple-700 text-white"
-                  }`}
-                >
-                  <h3 className="text-lg font-semibold">
-                    Job Details - {selectedJob.designation}
-                  </h3>
-                  <button
-                    onClick={closeModal}
-                    className="text-white hover:text-gray-200 transition"
-                  >
-                    ✕
-                  </button>
-                </div>
-
-                {/* Body */}
-                <div className="px-6 py-5 max-h-[65vh] overflow-y-auto space-y-6">
-                  {/* Grid Info */}
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <p>
-                      <span className="font-semibold">ID:</span>{" "}
-                      {selectedJob.id}
-                    </p>
-                    <p>
-                      <span className="font-semibold">Company:</span>{" "}
-                      {selectedJob.company}
-                    </p>
-                    <p>
-                      <span className="font-semibold">Category:</span>{" "}
-                      {selectedJob.category}
-                    </p>
-                    <p>
-                      <span className="font-semibold">Position:</span>{" "}
-                      {selectedJob.position}
-                    </p>
-                    <p>
-                      <span className="font-semibold">Job Type:</span>{" "}
-                      {selectedJob.jobType}
-                    </p>
-                    <p>
-                      <span className="font-semibold">Active:</span>{" "}
-                      {selectedJob.active}
-                    </p>
-                    <p>
-                      <span className="font-semibold">Approved:</span>{" "}
-                      {selectedJob.approved}
-                    </p>
-                    <p>
-                      <span className="font-semibold">Hidden:</span>{" "}
-                      {selectedJob.hidden}
-                    </p>
-                    <p className="col-span-2">
-                      <span className="font-semibold">Date:</span>{" "}
-                      {selectedJob.date}
-                    </p>
-                  </div>
-
-                  {/* Description */}
-                  <div>
-                    <h4 className="text-md font-semibold mb-2">
-                      Job Description
-                    </h4>
-                    <p className="text-sm leading-relaxed whitespace-pre-line">
-                      {selectedJob.description ||
-                        "No description available. Please update job details."}
-                    </p>
-                  </div>
-
-                  {/* Requirements */}
-                  <div>
-                    <h4 className="text-md font-semibold mb-2">Requirements</h4>
-                    <ul className="list-disc list-inside text-sm space-y-1">
-                      {selectedJob.requirements &&
-                      selectedJob.requirements.length > 0 ? (
-                        selectedJob.requirements.map((req, index) => (
-                          <li key={index}>{req}</li>
-                        ))
-                      ) : (
-                        <p className="text-sm text-gray-500">
-                          No requirements listed.
-                        </p>
-                      )}
-                    </ul>
-                  </div>
-                </div>
-
-                {/* Footer Buttons */}
-                <div className="flex flex-col sm:flex-row justify-end gap-3 px-6 py-4 border-t border-gray-200">
-                  <button
-                    onClick={approveJob}
-                    className="flex-1 sm:flex-none px-5 py-2 rounded-lg bg-green-500 text-white font-medium shadow-md hover:bg-green-600 transition"
-                  >
-                    ✅ Approve
-                  </button>
-                  <button
-                    onClick={deleteJob}
-                    className="flex-1 sm:flex-none px-5 py-2 rounded-lg bg-red-500 text-white font-medium shadow-md hover:bg-red-600 transition"
-                  >
-                    🗑️ Delete
-                  </button>
-                  <button
-                    onClick={closeModal}
-                    className="flex-1 sm:flex-none px-5 py-2 rounded-lg bg-gray-400 text-white font-medium shadow-md hover:bg-gray-500 transition"
-                  >
-                    ✖ Close
-                  </button>
-                </div>
-              </div>
-            </div>
+                {num}
+              </button>
+            )
           )}
+
+          <button
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            className={`px-3 py-1 rounded-md ${
+              currentPage === totalPages
+                ? "bg-gray-300 cursor-not-allowed"
+                : "bg-indigo-500 text-white hover:bg-indigo-600"
+            }`}
+          >
+            Next
+          </button>
         </div>
 
-        <button
-          onClick={() => handlePageChange(currentPage + 1)}
-          disabled={currentPage === totalPages}
-          className={`px-3 py-1 rounded-md ${
-            currentPage === totalPages
-              ? "bg-gray-300 cursor-not-allowed"
-              : "bg-indigo-500 text-white hover:bg-indigo-600"
-          }`}
-        >
-          Next
-        </button>
+        {/* Rows per page */}
+        <FormControl size="small" className="w-32">
+          <InputLabel>Rows</InputLabel>
+          <Select
+            value={jobsPerPage}
+            label="Rows"
+            onChange={(e) => {
+              setJobsPerPage(Number(e.target.value));
+              setCurrentPage(1);
+            }}
+          >
+            <MenuItem value={10}>10</MenuItem>
+            <MenuItem value={25}>25</MenuItem>
+            <MenuItem value={50}>50</MenuItem>
+            <MenuItem value={100}>100</MenuItem>
+          </Select>
+        </FormControl>
       </div>
+
+      {/* Filter Modal */}
+      <Modal open={openFilter} onClose={() => setOpenFilter(false)}>
+        <Box
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: 400,
+            bgcolor: "background.paper",
+            boxShadow: 24,
+            borderRadius: 2,
+            p: 4,
+          }}
+        >
+          <h3 className="text-lg font-semibold mb-4">Filter Jobs</h3>
+
+          <div className="grid gap-4">
+            <TextField
+              label="Search"
+              name="search"
+              fullWidth
+              value={filters.search}
+              onChange={handleFilterChange}
+            />
+
+            <TextField
+              select
+              label="Category"
+              name="category"
+              fullWidth
+              value={filters.category}
+              onChange={handleFilterChange}
+            >
+              <MenuItem value="">All</MenuItem>
+              <MenuItem value="IT">IT</MenuItem>
+              <MenuItem value="Finance">Finance</MenuItem>
+            </TextField>
+
+            <TextField
+              select
+              label="Position"
+              name="position"
+              fullWidth
+              value={filters.position}
+              onChange={handleFilterChange}
+            >
+              <MenuItem value="">All</MenuItem>
+              <MenuItem value="Manager">Manager</MenuItem>
+              <MenuItem value="Developer">Developer</MenuItem>
+            </TextField>
+
+            <TextField
+              select
+              label="Job Type"
+              name="jobType"
+              fullWidth
+              value={filters.jobType}
+              onChange={handleFilterChange}
+            >
+              <MenuItem value="">All</MenuItem>
+              <MenuItem value="Full-Time">Full-Time</MenuItem>
+              <MenuItem value="Part-Time">Part-Time</MenuItem>
+            </TextField>
+          </div>
+
+          <div className="flex justify-between gap-3 mt-6">
+            <Button
+              variant="outlined"
+              color="warning"
+              fullWidth
+              onClick={handleResetFilters}
+            >
+              Reset
+            </Button>
+            <Button
+              variant="contained"
+              color="primary"
+              fullWidth
+              onClick={() => setOpenFilter(false)}
+            >
+              Apply
+            </Button>
+          </div>
+        </Box>
+      </Modal>
     </div>
   );
 };

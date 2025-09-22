@@ -19,7 +19,8 @@ const AppRoutes = ({mode, setMode}) => {
           <Route index element={<Dashboard mode={mode}  />} />
           <Route path="users" element={<User mode={mode}/>} />
           <Route path="jobs" element={<Jobs mode={mode}/>} />
-          <Route path="employers" element={<JobDetails   mode={mode} />} />
+          <Route path="jobdetail/:id" element={<JobDetails mode={mode}  />} />
+          {/* <Route path="employers" element={<JobDetails   />} /> */}
           <Route path="settings" element={<Settings />} />
         </Route>
       </Routes>

@@ -3,10 +3,14 @@ import WorkIcon from "@mui/icons-material/Work";
 import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import PersonIcon from "@mui/icons-material/Person";
 import GroupIcon from "@mui/icons-material/Group";
+import { useParams } from "react-router-dom";
 
 const JobDetails = ({ mode = "light" }) => {
   const [activeTab, setActiveTab] = useState("general");
 
+   const { id } = useParams();
+   console.log(id)
+   
   const containerStyle =
     mode === "light"
       ? "bg-white shadow-md"

@@ -14,7 +14,7 @@ const Sidebar = ({ open ,mode}) => {
     { name: "Dashboard", icon: <DashboardIcon />, path: "/" },
     { name: "Users", icon: <PeopleIcon />, path: "/users" },
     { name: "Jobs", icon: <WorkIcon />, path: "/jobs" },
-    { name: "Employers", icon: <BusinessIcon />, path: "/employers" },
+    // { name: "Employers", icon: <BusinessIcon />, path: "/employers" },
     // { name: "Settings", icon: <SettingsIcon />, path: "/settings" },
   ];
 
