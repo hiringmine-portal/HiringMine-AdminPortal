@@ -5,6 +5,7 @@ import Dashboard from "../components/Dashboard";
 import User from "../components/User";
 import Jobs from "../components/Jobs";
 import JobDetails from "../components/JobDetails";
+import UserDetails from "../components/UserDetails";
 
 // const Jobs = () => <h2>Jobs Page</h2>;
 // const Employers = () => <h2>Employers Page</h2>;
@@ -20,6 +21,7 @@ const AppRoutes = ({mode, setMode}) => {
           <Route path="users" element={<User mode={mode}/>} />
           <Route path="jobs" element={<Jobs mode={mode}/>} />
           <Route path="jobdetail/:id" element={<JobDetails mode={mode}  />} />
+          <Route path="userdetail/:id" element={<UserDetails mode={mode}  />} />
           {/* <Route path="employers" element={<JobDetails   />} /> */}
           <Route path="settings" element={<Settings />} />
         </Route>

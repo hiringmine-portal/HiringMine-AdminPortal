@@ -11,9 +11,11 @@ import {
   InputLabel,
 } from "@mui/material";
 import FilterListIcon from "@mui/icons-material/FilterList";
+import { useNavigate } from "react-router-dom";
 
 const UserTable = ({ mode }) => {
   // Dummy Users Data
+  const navigate = useNavigate()
   const allUsers = Array.from({ length: 75 }, (_, i) => ({
     id: i + 1,
     username: `User_${i + 1}`,
@@ -154,7 +156,8 @@ const UserTable = ({ mode }) => {
             {currentUsers.map((user) => (
               <tr
                 key={user.id}
-                className={`border-b ${
+                onClick={() => navigate(`/userdetail/${user.id}`)}
+                className={`cursor-pointer border-b ${
                   mode === "light" ? "hover:bg-gray-50" : "hover:bg-gray-800"
                 }`}
               >
